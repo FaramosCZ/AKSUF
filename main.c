@@ -26,8 +26,11 @@
 /* -----------------------------------------------------------------------------
 
    TODO:
-     Check for a triplet (or more)
-     Check for a triplet (or more) after 1 move
+     Generate first triplet on the board
+       Write it properly to the history
+     Create template for generating all other moves
+     Create template for history operations
+     Iterate through all available positions for the first triplet
 
    MISC:
      Global variables and macros written with capital letters
@@ -85,6 +88,7 @@ void initialize_history()
 
  // HERE is the place to set initial field pattern:
 
+ HISTORY_LATEST->board[HEIGHT-4][WIDTH/2-1] = 'C';
  HISTORY_LATEST->board[HEIGHT-3][WIDTH/2] = 'C';
  HISTORY_LATEST->board[HEIGHT-2][WIDTH/2] = 'C';
  HISTORY_LATEST->board[HEIGHT-1][WIDTH/2] = 'C';
@@ -107,13 +111,13 @@ void delete_last_history_entry()
 // -----------------------------------------------------------------------------
 // CLI AND FUNCTIONS FOR THE BOARD PRINTING
 
-void print_board()
+void print_board_specific( history * history_entry )
 {
  printf("\n");
  for( int x=0 ; x<HEIGHT ; x++)
   {
    printf("| ");
-   for( int y=0 ; y<WIDTH ; y++) printf("%c ", HISTORY_LATEST->board[x][y]);
+   for( int y=0 ; y<WIDTH ; y++) printf("%c ", history_entry->board[x][y]);
    printf("|\n");
   }
 
@@ -121,6 +125,118 @@ void print_board()
   for( int x=0 ; x<=WIDTH ; x++) printf("--");
   printf("-\n");
 }
+
+
+
+void print_board() { print_board_specific( HISTORY_LATEST ); }
+
+
+
+// -----------------------------------------------------------------------------
+// CHECK FUNCTIONS
+
+int check_number_of_triplets_active_specific( history * history_entry )
+{
+ int count = 0; // Final count of triplets found
+
+ // Check for:   0
+ //              0
+ //              0
+ for( int x=0 ; x<HEIGHT-2 ; x++ )
+  {
+   for( int y=0 ; y<WIDTH ; y++ )
+    {
+     if( history_entry->board[x][y] == PLACEHOLDER ) continue;
+     if( history_entry->board[x][y] == history_entry->board[x+1][y] && history_entry->board[x+1][y] == history_entry->board[x+2][y] ) count++;
+    }
+  }
+
+ // Check for:
+ //              0 0 0
+ //
+ for( int x=0 ; x<HEIGHT ; x++ )
+  {
+   for( int y=0 ; y<WIDTH-2 ; y++ )
+    {
+     if( history_entry->board[x][y] == PLACEHOLDER ) continue;
+     if( history_entry->board[x][y] == history_entry->board[x][y+1] && history_entry->board[x][y+1] == history_entry->board[x][y+2] ) count++;
+    }
+  }
+
+ return count;
+}
+
+
+
+int check_number_of_triplets_one_move_away_specific( history * history_entry )
+{
+ int count = 0; // Final count of triplets found
+
+ // check for:   0      0       0
+ //              0        0       0
+ //                0    0         0
+ for( int x=0 ; x<HEIGHT-2 ; x++)
+  {
+   for( int y=0 ; y<WIDTH-1 ; y++)
+    {
+     if(history_entry->board[x][y]==PLACEHOLDER) continue;
+     if(history_entry->board[x][y] == history_entry->board[x+1][y] && history_entry->board[x+1][y] == history_entry->board[x+2][y+1]) count++;
+     if(history_entry->board[x][y] == history_entry->board[x+1][y+1] && history_entry->board[x+1][y+1] == history_entry->board[x+2][y+1]) count++;
+     if(history_entry->board[x][y] == history_entry->board[x+1][y+1] && history_entry->board[x+1][y+1] == history_entry->board[x+2][y]) count++;
+    }
+  }
+
+ // check for:   0      0       0
+ //              0    0       0
+ //            0        0     0
+ for( int x=0 ; x<HEIGHT-2 ; x++)
+  {
+   for( int y=1 ; y<WIDTH ; y++)
+    {
+     if(history_entry->board[x][y]==PLACEHOLDER) continue;
+     if(history_entry->board[x][y] == history_entry->board[x+1][y] && history_entry->board[x+1][y] == history_entry->board[x+2][y-1]) count++;
+     if(history_entry->board[x][y] == history_entry->board[x+1][y-1] && history_entry->board[x+1][y-1] == history_entry->board[x+2][y-1]) count++;
+     if(history_entry->board[x][y] == history_entry->board[x+1][y-1] && history_entry->board[x+1][y-1] == history_entry->board[x+2][y]) count++;
+    }
+  }
+
+ // check for:
+ //             0 0      0   0    0
+ //                 0      0        0 0
+ for( int x=0 ; x<HEIGHT-1 ; x++)
+  {
+   for( int y=0 ; y<WIDTH-2 ; y++)
+    {
+     if(history_entry->board[x][y]==PLACEHOLDER) continue;
+     if(history_entry->board[x][y] == history_entry->board[x][y+1] && history_entry->board[x][y+1] == history_entry->board[x+1][y+2]) count++;
+     if(history_entry->board[x][y] == history_entry->board[x+1][y+1] && history_entry->board[x+1][y+1] == history_entry->board[x+1][y+2]) count++;
+     if(history_entry->board[x][y] == history_entry->board[x+1][y+1] && history_entry->board[x+1][y+1] == history_entry->board[x][y+2]) count++;
+    }
+  }
+
+ // check for:     0       0        0 0
+ //             0 0      0   0    0
+ //
+ for( int x=1 ; x<HEIGHT ; x++)
+  {
+   for( int y=0 ; y<WIDTH-2 ; y++)
+    {
+     if(history_entry->board[x][y]==PLACEHOLDER) continue;
+     if(history_entry->board[x][y] == history_entry->board[x][y+1] && history_entry->board[x][y+1] == history_entry->board[x-1][y+2]) count++;
+     if(history_entry->board[x][y] == history_entry->board[x-1][y+1] && history_entry->board[x-1][y+1] == history_entry->board[x-1][y+2]) count++;
+     if(history_entry->board[x][y] == history_entry->board[x-1][y+1] && history_entry->board[x-1][y+1] == history_entry->board[x][y+2]) count++;
+    }
+  }
+
+ return count;
+}
+
+
+
+int check_number_of_triplets_active(){ return check_number_of_triplets_active_specific( HISTORY_LATEST ); }
+int check_number_of_triplets_one_move_away(){ return check_number_of_triplets_one_move_away_specific( HISTORY_LATEST ); }
+int check_triplets_specific( history * history_entry ){ return check_number_of_triplets_one_move_away_specific( history_entry ) + check_number_of_triplets_active_specific( history_entry ); }
+int check_triplets(){ return check_triplets_specific( HISTORY_LATEST ); }
 
 
 
@@ -135,7 +251,9 @@ int main()
 
    print_board();
 
-   printf("Let's begin!");
+   printf("\nNuber of active triplets: %d\n", check_number_of_triplets_active() );
+   printf("\nNuber of triplets one move away: %d\n", check_number_of_triplets_one_move_away() );
+   printf("\nTotal ^: %d\n", check_triplets() );
 
    return 0;
   }
