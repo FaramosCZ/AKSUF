@@ -1,0 +1,27 @@
+MATHEMATIC MODEL
+
+The moves will be generated from the final game result (input to the program)
+to the beginning of the game. (Gems placed on every field)
+
+First, we'll father input to the program and check, that the size of the
+playing board is correct. Ideally, the input will be fully filled bottom row,
+and the playing filed would have multiple of 3 as a height.
+
+Then, we'll need to generate the first triplet. It is a special one, beacuse
+all other triplets will operate with the latest triplet placed before them.
+Make sure, there is no move or "move one swap away" available other than the
+placed triplet. If there would be more, the game would not be deterministic.
+
+Once first triplet is generated, every other will be placed in following way:
+Take the last triplet and place the new next to it. They must touch atleast
+with single side, corner is not enough.
+Check, if there are only 2 moves or "moves one swap away" on the board
+(the last placed and newly placed)
+Make swap between those 2 triplets and check again, there is only 2 options.
+(the last placed and newly placed, now both one swap away)
+
+By this algorith, every new triplet will be bound to the last, which will
+create a chain of triplets where one triplet solved, enable solving of another
+one.
+The checks after every triplet addition and after every swap will assure,
+that the chain will be deterministic.
